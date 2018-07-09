@@ -376,7 +376,7 @@ class SingleDatePicker extends React.Component {
 
     if (withPortal || withFullScreenPortal || appendToBody) {
       return (
-        <Portal>
+        <Portal key="Portal">
           {this.renderDayPicker()}
         </Portal>
       );
@@ -441,6 +441,7 @@ class SingleDatePicker extends React.Component {
 
     return (
       <div // eslint-disable-line jsx-a11y/no-static-element-interactions
+        key="DayPicker"
         ref={this.setDayPickerContainerRef}
         {...css(
           styles.SingleDatePicker_picker,
@@ -551,9 +552,47 @@ class SingleDatePicker extends React.Component {
 
     const displayValue = this.getDateString(date);
 
-    const onOutsideClick = (!withPortal && !withFullScreenPortal) ? this.onClearFocus : undefined;
+    const enableOutsideClick = (!withPortal && !withFullScreenPortal);
+    const Wrapper = enableOutsideClick ? OutsideClickHandler : 'div';
+    const wrapperProps = enableOutsideClick ? { onOutsideClick: this.onClearFocus } : {};
 
     const hideFang = verticalSpacing < FANG_HEIGHT_PX;
+
+    const input = (
+      <SingleDatePickerInput
+        key="SingleDatePickerInput"
+        id={id}
+        placeholder={placeholder}
+        focused={focused}
+        isFocused={isInputFocused}
+        disabled={disabled}
+        required={required}
+        readOnly={readOnly}
+        openDirection={openDirection}
+        showCaret={!withPortal && !withFullScreenPortal && !hideFang}
+        onClearDate={this.clearDate}
+        showClearDate={showClearDate}
+        showDefaultInputIcon={showDefaultInputIcon}
+        inputIconPosition={inputIconPosition}
+        customCloseIcon={customCloseIcon}
+        customInputIcon={customInputIcon}
+        displayValue={displayValue}
+        onChange={this.onChange}
+        onFocus={this.onFocus}
+        onKeyDownShiftTab={this.onClearFocus}
+        onKeyDownTab={this.onClearFocus}
+        onKeyDownArrowDown={this.onDayPickerFocus}
+        onKeyDownQuestionMark={this.showKeyboardShortcutsPanel}
+        screenReaderMessage={screenReaderInputMessage}
+        phrases={phrases}
+        isRTL={isRTL}
+        noBorder={noBorder}
+        block={block}
+        small={small}
+        regular={regular}
+        verticalSpacing={verticalSpacing}
+      />
+    );
 
     return (
       <div
@@ -563,42 +602,19 @@ class SingleDatePicker extends React.Component {
           block && styles.SingleDatePicker__block,
         )}
       >
-        <OutsideClickHandler onOutsideClick={onOutsideClick}>
-          <SingleDatePickerInput
-            id={id}
-            placeholder={placeholder}
-            focused={focused}
-            isFocused={isInputFocused}
-            disabled={disabled}
-            required={required}
-            readOnly={readOnly}
-            openDirection={openDirection}
-            showCaret={!withPortal && !withFullScreenPortal && !hideFang}
-            onClearDate={this.clearDate}
-            showClearDate={showClearDate}
-            showDefaultInputIcon={showDefaultInputIcon}
-            inputIconPosition={inputIconPosition}
-            customCloseIcon={customCloseIcon}
-            customInputIcon={customInputIcon}
-            displayValue={displayValue}
-            onChange={this.onChange}
-            onFocus={this.onFocus}
-            onKeyDownShiftTab={this.onClearFocus}
-            onKeyDownTab={this.onClearFocus}
-            onKeyDownArrowDown={this.onDayPickerFocus}
-            onKeyDownQuestionMark={this.showKeyboardShortcutsPanel}
-            screenReaderMessage={screenReaderInputMessage}
-            phrases={phrases}
-            isRTL={isRTL}
-            noBorder={noBorder}
-            block={block}
-            small={small}
-            regular={regular}
-            verticalSpacing={verticalSpacing}
-          />
-
-          {this.maybeRenderDayPickerWithPortal()}
-        </OutsideClickHandler>
+        <Wrapper {...wrapperProps}>
+          {enableOutsideClick
+            ? (
+              <OutsideClickHandler onOutsideClick={this.onOutsideClick}>
+                {input}
+                {this.maybeRenderDayPickerWithPortal()}
+              </OutsideClickHandler>
+            ) : ([
+              input,
+              this.maybeRenderDayPickerWithPortal(),
+            ])
+          }
+        </Wrapper>
       </div>
     );
   }
